@@ -21,7 +21,9 @@ use App\Http\Controllers\Api\PaiementController;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
-
+Route::get('v1/burgers/all', [BurgerController::class, 'index'])->name('burgers.index');
+Route::post('v1/clients/store', [ClientController::class, 'store'])->name('clients.store');
+Route::post('v1/commandes/store', [CommandeController::class, 'store'])->name('commandes.store');
 Route::post('v1/login', [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->post('v1/logout', [AuthController::class, 'logout']);
 Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
