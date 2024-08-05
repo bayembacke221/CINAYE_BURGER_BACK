@@ -4,18 +4,22 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\ApiValidator;
 use App\Http\Controllers\Controller;
+use App\Notifications\FactureNotification;
 use App\Repositories\CommandeRepository;
 use App\Http\ApiResponse;
+use App\Services\FactureService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
 class CommandeController extends Controller
 {
     protected $commandeRepository;
+    protected $factureService;
 
-    public function __construct(CommandeRepository $commandeRepository)
+    public function __construct(CommandeRepository $commandeRepository, FactureService $factureService)
     {
         $this->commandeRepository = $commandeRepository;
+        $this->factureService = $factureService;
     }
 
     public function index()
@@ -62,8 +66,15 @@ class CommandeController extends Controller
     {
         $etat = $request->input('etat');
         $commande = $this->commandeRepository->changeEtat($id, $etat);
+
+        if ($etat === 'terminé') {
+            $pdfContent = $this->factureService->generatePDF($commande);
+            $commande->client->notify(new FactureNotification($commande, $pdfContent));
+        }
+
         return ApiResponse::success($commande, 'État de la commande mis à jour avec succès');
     }
+
 
     public function annuler($id)
     {
